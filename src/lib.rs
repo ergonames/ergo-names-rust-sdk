@@ -18,7 +18,6 @@ fn get_token_data(token_name: &str, limit: u64, offset: u64) -> Result<Value> {
     url.push_str(&limit.to_string());
     url.push_str("&offset=");
     url.push_str(&offset.to_string());
-    println!("{}", url);
     let resp: String = reqwest::blocking::get(url)?.text()?;
     let data: Value = serde_json::from_str(&resp)?;
     return Ok(data);
@@ -65,7 +64,6 @@ fn get_box_by_id(box_id: &str) -> Result<Value> {
     let mut url: String = EXPLORER_API_URL.to_owned();
     url.push_str("api/v1/boxes/");
     url.push_str(box_id);
-    println!("{}", url);
     let resp: String = reqwest::blocking::get(url)?.text()?;
     let data: Value = serde_json::from_str(&resp)?;
     return Ok(data);
@@ -84,7 +82,6 @@ fn get_token_transaction_data(token_id: &str) -> Result<Value> {
     url.push_str(token_id);
     url.push_str("&limit=");
     url.push_str(&(total-1).to_string());
-    println!("{}", url);
     let resp: String = reqwest::blocking::get(url)?.text()?;
     let data: Value = serde_json::from_str(&resp)?;
     return Ok(data["items"].to_owned());
@@ -95,7 +92,6 @@ fn get_single_transactions_for_token(token_id: &str) -> Result<Value> {
     url.push_str("api/v1/assets/search/byTokenId?query=");
     url.push_str(token_id);
     url.push_str("&limit=1");
-    println!("{}", url);
     let resp: String = reqwest::blocking::get(url)?.text()?;
     let data: Value = serde_json::from_str(&resp)?;
     return Ok(data);
@@ -146,10 +142,4 @@ pub fn resolve_ergoname(name: &str) -> String {
     let token_current_box_id: String = get_box_id_from_token_data(token_last_transaction);
     let address: String = get_box_address(&token_current_box_id);
     return address;
-}
-
-fn main() {
-    let name: &str = "test mint v0.1.1";
-    let address: String = resolve_ergoname(name);
-    println!("{}", address);
 }
