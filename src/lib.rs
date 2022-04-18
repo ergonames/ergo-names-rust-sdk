@@ -28,12 +28,15 @@ fn create_token_data(token_name: &str) -> Result<String> {
     let needed_calls: u64 = (total / 500) + 1;
     let mut offset: u64 = 0;
     let mut transaction_data: String = "".to_owned();
-
-    for _i in 0..needed_calls {
-        transaction_data = transaction_data + &get_token_data(&token_name, 500, offset).unwrap()["items"].to_string();
-        offset = offset + 500;
+    if total > 0 {
+        for _i in 0..needed_calls {
+            transaction_data = transaction_data + &get_token_data(&token_name, 500, offset).unwrap()["items"].to_string();
+            offset = offset + 500;
+        }
+        return Ok(transaction_data);
+    } else {
+        return Ok("None".to_string());
     }
-    return Ok(transaction_data);
 }
 
 fn create_token_vector(data: String) -> Vec<Token> {
@@ -135,11 +138,15 @@ pub fn remove_quotes(i_str: String) -> String {
 pub fn resolve_ergoname(name: &str) -> String {
     let refactored_name: String = reformat_name_search(name);
     let token_data: String = create_token_data(&refactored_name).unwrap();
-    let token_vector: Vec<Token> = create_token_vector(token_data);
-    let token_id: String = get_asset_minted_at_address(token_vector);
-    let token_transactions: Value = get_token_transaction_data(&token_id).unwrap();
-    let token_last_transaction: Value = get_last_transaction(token_transactions).unwrap();
-    let token_current_box_id: String = get_box_id_from_token_data(token_last_transaction);
-    let address: String = get_box_address(&token_current_box_id);
-    return address;
+    if token_data != "None" {
+        let token_vector: Vec<Token> = create_token_vector(token_data);
+        let token_id: String = get_asset_minted_at_address(token_vector);
+        let token_transactions: Value = get_token_transaction_data(&token_id).unwrap();
+        let token_last_transaction: Value = get_last_transaction(token_transactions).unwrap();
+        let token_current_box_id: String = get_box_id_from_token_data(token_last_transaction);
+        let address: String = get_box_address(&token_current_box_id);
+        return address;
+    } else {
+        return "None".to_owned();
+    }
 }
