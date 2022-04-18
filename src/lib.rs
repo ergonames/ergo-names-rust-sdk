@@ -80,7 +80,7 @@ fn get_token_transaction_data(token_id: &str) -> Result<Value> {
     let mut url: String = EXPLORER_API_URL.to_owned();
     url.push_str("api/v1/assets/search/byTokenId?query=");
     url.push_str(token_id);
-    url.push_str("&limit=");
+    url.push_str("&offset=");
     url.push_str(&(total-1).to_string());
     let resp: String = reqwest::blocking::get(url)?.text()?;
     let data: Value = serde_json::from_str(&resp)?;
