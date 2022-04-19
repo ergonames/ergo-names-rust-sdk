@@ -7,7 +7,7 @@ documentation = "https://github.com/ergonames/ergo-names-rust-sdk"
 repository = "https://github.com/ergonames/ergo-names-rust-sdk"
 readme = "README.md"
 homepage = "https://ergonames.com/"
-license-file = "LICENSE"
+license = "MIT"
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
