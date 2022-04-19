@@ -1,5 +1,5 @@
 [package]
-name = "ergo-names-rust-sdk"
+name = "ergonames-rust-testnet"
 version = "0.1.0"
 edition = "2021"
 
