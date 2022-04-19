@@ -1,5 +1,5 @@
 [package]
-name = "ergonames-rust-testnet"
+name = "ergonames-rust"
 version = "0.1.0"
 edition = "2021"
 description = "A SDK for resolving ErgoNames on testnet."
