@@ -1,6 +1,6 @@
 [package]
 name = "ergonames"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "A SDK for interacting with ErgoNames using rust."
 documentation = "https://github.com/ergonames/ergo-names-docs/blob/master/sdks/rust.md"
