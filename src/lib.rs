@@ -5,12 +5,12 @@ const EXPLORER_API_URL: &str = "https://api-testnet.ergoplatform.com/";
 
 const MINT_ADDRESS: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
 
-struct  Token {
+pub struct  Token {
     id: String,
     box_id: String,
 }
 
-fn get_token_data(token_name: &str, limit: u64, offset: u64) -> Result<Value> {
+pub fn get_token_data(token_name: &str, limit: u64, offset: u64) -> Result<Value> {
     let mut url: String = EXPLORER_API_URL.to_owned();
     url.push_str("api/v1/tokens/search?query=");
     url.push_str(token_name);
@@ -23,7 +23,7 @@ fn get_token_data(token_name: &str, limit: u64, offset: u64) -> Result<Value> {
     return Ok(data);
 }
 
-fn create_token_data(token_name: &str) -> Result<String> {
+pub fn create_token_data(token_name: &str) -> Result<String> {
     let total: u64 = get_token_data(&token_name, 1, 0).unwrap()["total"].to_owned().as_u64().unwrap();
     let needed_calls: u64 = (total / 500) + 1;
     let mut offset: u64 = 0;
@@ -39,7 +39,7 @@ fn create_token_data(token_name: &str) -> Result<String> {
     }
 }
 
-fn create_token_vector(data: String) -> Vec<Token> {
+pub fn create_token_vector(data: String) -> Vec<Token> {
     let data_value: Value = serde_json::from_str(&data).unwrap();
     let mut token_vector: Vec<Token> = Vec::new();
     for i in 0..data_value.as_array().unwrap().len() {
@@ -53,7 +53,7 @@ fn create_token_vector(data: String) -> Vec<Token> {
     return token_vector
 }
 
-fn get_asset_minted_at_address(token_vector: Vec<Token>) -> String{
+pub fn get_asset_minted_at_address(token_vector: Vec<Token>) -> String{
     for i in token_vector {
         let address: String = get_box_address(&i.box_id);
         if address == MINT_ADDRESS.to_owned() {
@@ -63,7 +63,7 @@ fn get_asset_minted_at_address(token_vector: Vec<Token>) -> String{
     return "None".to_owned();
 }
 
-fn get_box_by_id(box_id: &str) -> Result<Value> {
+pub fn get_box_by_id(box_id: &str) -> Result<Value> {
     let mut url: String = EXPLORER_API_URL.to_owned();
     url.push_str("api/v1/boxes/");
     url.push_str(box_id);
@@ -72,13 +72,13 @@ fn get_box_by_id(box_id: &str) -> Result<Value> {
     return Ok(data);
 }
 
-fn get_box_address(box_id: &str) -> String {
+pub fn get_box_address(box_id: &str) -> String {
     let box_data: Value = get_box_by_id(box_id).unwrap();
     let address: String = remove_quotes(box_data["address"].to_string());
     return address;
 }
 
-fn get_token_transaction_data(token_id: &str) -> Result<Value> {
+pub fn get_token_transaction_data(token_id: &str) -> Result<Value> {
     let total: u64 = get_max_transactions_for_token(token_id);
     let mut url: String = EXPLORER_API_URL.to_owned();
     url.push_str("api/v1/assets/search/byTokenId?query=");
@@ -90,7 +90,7 @@ fn get_token_transaction_data(token_id: &str) -> Result<Value> {
     return Ok(data["items"].to_owned());
 }
 
-fn get_single_transactions_for_token(token_id: &str) -> Result<Value> {
+pub fn get_single_transactions_for_token(token_id: &str) -> Result<Value> {
     let mut url: String = EXPLORER_API_URL.to_owned();
     url.push_str("api/v1/assets/search/byTokenId?query=");
     url.push_str(token_id);
@@ -100,20 +100,20 @@ fn get_single_transactions_for_token(token_id: &str) -> Result<Value> {
     return Ok(data);
 }
 
-fn get_max_transactions_for_token(token_id: &str) -> u64 {
+pub fn get_max_transactions_for_token(token_id: &str) -> u64 {
     let data: Value = get_single_transactions_for_token(token_id).unwrap();
     let total: u64 = data["total"].as_u64().unwrap();
     return total;
 }
 
-fn get_last_transaction(data: Value) -> Result<Value> {
+pub fn get_last_transaction(data: Value) -> Result<Value> {
     let length: usize = data.as_array().unwrap().len();
     let last_borrowed: &Value = &data.get(length-1).unwrap();
     let last: Value = last_borrowed.to_owned();
     return Ok(last);
 }
 
-fn get_box_id_from_token_data(data: Value) -> String{
+pub fn get_box_id_from_token_data(data: Value) -> String{
     let box_id: String = data["boxId"].to_string();
     return remove_quotes(box_id);
 }
