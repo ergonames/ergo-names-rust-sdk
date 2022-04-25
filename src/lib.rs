@@ -118,26 +118,13 @@ fn get_box_id_from_token_data(data: Value) -> String{
     return remove_quotes(box_id);
 }
 
-fn reformat_name_search(name: &str) -> String {
-    let mut new_name: String = "".to_owned();
-    for c in name.chars() {
-        if c == ' ' {
-            new_name.push_str("%20");
-        } else {
-            new_name.push(c);
-        }
-    }
-    return new_name;
-}
-
 pub fn remove_quotes(i_str: String) -> String {
     let n_str: String = i_str.replace('"', "");
     return n_str;
 }
 
 pub fn resolve_ergoname(name: &str) -> String {
-    let refactored_name: String = reformat_name_search(name);
-    let token_data: String = create_token_data(&refactored_name).unwrap();
+    let token_data: String = create_token_data(&name).unwrap();
     if token_data != "None" {
         let token_vector: Vec<Token> = create_token_vector(token_data);
         let token_id: String = get_asset_minted_at_address(token_vector);
