@@ -137,3 +137,46 @@ pub fn resolve_ergoname(name: &str) -> String {
         return "None".to_owned();
     }
 }
+
+pub fn check_already_registered(name: &str) -> bool {
+    let address: String = resolve_ergoname(name);
+    if address != "None" {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+pub fn check_name_valid(name: &str) -> bool {
+    for c in name.chars() {
+        let char_code: u8 = c as u8;
+        if char_code <= 44 {
+            return false;
+        } else if char_code == 47 {
+            return false;
+        } else if char_code >= 58 && char_code <= 94 {
+            return false;
+        } else if char_code == 96 {
+            return false;
+        } else if char_code >= 123 && char_code <= 125 {
+            return false;
+        } else if char_code >= 127 {
+            return false;
+        }
+    }
+    return true;
+}
+
+pub fn reformat_name(name: &str) -> String {
+    return name.to_lowercase();
+}
+
+pub fn check_name_price(name: &str) -> String {
+    let _: String = reformat_name(name);
+    return "None".to_owned();
+}
+
+fn main() {
+    let r = reformat_name("~balb");
+    println!("{}", r);
+}
