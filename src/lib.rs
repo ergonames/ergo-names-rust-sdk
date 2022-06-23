@@ -122,8 +122,3 @@ pub fn check_name_price(name: &str) -> String {
     let _: String = reformat_name(name);
     return "None".to_owned();
 }
-
-fn main() {
-    let r = reformat_name("~balb");
-    println!("{}", r);
-}
