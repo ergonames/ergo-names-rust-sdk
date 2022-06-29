@@ -56,3 +56,51 @@ pub fn check_already_registered(name: &str) -> bool {
         return false;
     }
 }
+
+pub fn reverse_search(address: &str) -> Vec<types::Token> {
+    let token_data: Vec<Value> = data_parsers::get_address_tokens(address);
+    let token_vector: Vec<types::Token> = data_parsers::convert_to_token_array(token_data);
+    let valid_names_vector: Vec<types::Token> = data_parsers::remove_invalid_tokens(token_vector);
+    let owned_vector: Vec<types::Token> = data_parsers::check_correct_ownership(valid_names_vector, address);
+    return owned_vector;
+}
+
+pub fn get_total_amount_owned(address: &str) -> u32 {
+    let token_vector: Vec<types::Token> = reverse_search(address);
+    let total_amount: u32 = token_vector.len() as u32;
+    return total_amount;
+}
+
+pub fn get_block_id_registered(name: &str) -> String {
+    let token_data: String = data_parsers::create_token_data(&name).unwrap();
+    let token_vector: Vec<types::Token> = data_parsers::create_token_vector(token_data);
+    let token_id: String = data_parsers::get_asset_minted_at_address(token_vector);
+    let token_transactions: Value = endpoints::get_token_transaction_data(&token_id).unwrap();
+    let first_transaction: Value = data_parsers::get_first_transaction(token_transactions);
+    let block_id: String = data_parsers::get_block_id_from_transaction(first_transaction);
+    return block_id;
+}
+
+pub fn get_block_registered(name: &str) -> String {
+    let token_data: String = data_parsers::create_token_data(&name).unwrap();
+    let token_vector: Vec<types::Token> = data_parsers::create_token_vector(token_data);
+    let token_id: String = data_parsers::get_asset_minted_at_address(token_vector);
+    let token_transactions: Value = endpoints::get_token_transaction_data(&token_id).unwrap();
+    let first_transaction: Value = data_parsers::get_first_transaction(token_transactions);
+    let height: String = data_parsers::get_height_from_transaction(first_transaction);
+    return height;
+}
+
+pub fn get_timestamp_registered(name: &str) -> String{
+    let token_data: String = data_parsers::create_token_data(&name).unwrap();
+    let token_vector: Vec<types::Token> = data_parsers::create_token_vector(token_data);
+    let token_id: String = data_parsers::get_asset_minted_at_address(token_vector);
+    let token_transactions: Value = endpoints::get_token_transaction_data(&token_id).unwrap();
+    let first_transaction: Value = data_parsers::get_first_transaction(token_transactions);
+    let timestamp: String = data_parsers::get_timestamp_from_transaction(first_transaction);
+    return timestamp;
+}
+
+pub fn get_date_registerd() {
+    todo!();
+}

@@ -32,3 +32,10 @@ pub fn get_single_transactions_for_token(token_id: &str) -> Result<Value> {
     let data: Value = serde_json::from_str(&resp)?;
     return Ok(data);
 }
+
+pub fn get_address_confirmed_balance(address: &str) -> Result<Value> {
+    let url: String = format!("{}api/v1/addresses/{}/balance/confirmed", consts::EXPLORER_API_URL, address);
+    let resp: String = reqwest::blocking::get(url)?.text()?;
+    let data: Value = serde_json::from_str(&resp)?;
+    return Ok(data)
+}

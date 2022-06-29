@@ -1,7 +1,9 @@
 use anyhow::{Result};
 use serde_json::{Value};
 
+use crate::core_funcs::check_name_valid;
 use crate::endpoints;
+use crate::endpoints::get_address_confirmed_balance;
 use crate::types;
 use crate::consts;
 use crate::utils;
@@ -28,6 +30,7 @@ pub fn create_token_vector(data: String) -> Vec<types::Token> {
     for i in 0..data_value.as_array().unwrap().len() {
         let raw = data_value.get(i).unwrap();
         let tk: types::Token = types::Token {
+            name:String::from(utils::remove_quotes(raw["name"].to_string())),
             id:String::from(utils::remove_quotes(raw["id"].to_string())),
             box_id:String::from(utils::remove_quotes(raw["boxId"].to_string())),
         };
@@ -68,4 +71,63 @@ pub fn get_last_transaction(data: Value) -> Result<Value> {
 pub fn get_box_id_from_token_data(data: Value) -> String{
     let box_id: String = data["boxId"].to_string();
     return utils::remove_quotes(box_id);
+}
+
+pub fn get_address_tokens(address: &str) -> Vec<Value> {
+    let balance: Value = get_address_confirmed_balance(address).unwrap();
+    let tokens: &Vec<Value> = &balance["tokens"].as_array().unwrap().to_owned();
+    return tokens.to_owned();
+}
+
+pub fn convert_to_token_array(data: Vec<Value>) -> Vec<types::Token> {
+    let mut token_vector: Vec<types::Token> = Vec::new();
+    for i in 0..data.len() {
+        let raw = data.get(i).unwrap();
+        let tk: types::Token = types::Token {
+            name:String::from(utils::remove_quotes(raw["name"].to_string())),
+            id:String::from(utils::remove_quotes(raw["id"].to_string())),
+            box_id:String::from(utils::remove_quotes(raw["boxId"].to_string())),
+        };
+        token_vector.push(tk);
+    }
+    return token_vector;
+}
+
+pub fn remove_invalid_tokens(mut token_vector: Vec<types::Token>) -> Vec<types::Token> {
+    for i in 0..token_vector.len() {
+        if check_name_valid(&token_vector.get(i).unwrap().name) {
+            token_vector.remove(i);
+        }
+    }
+    return token_vector;
+}
+
+pub fn check_correct_ownership(token_vector: Vec<types::Token>, user_address: &str) -> Vec<types::Token> {
+    let mut token_vector: Vec<types::Token> = token_vector;
+    for i in 0..token_vector.len() {
+        if token_vector.get(i).unwrap().box_id != user_address {
+            token_vector.remove(i);
+        }
+    }
+    return token_vector;
+}
+
+pub fn get_first_transaction(transactions_data: Value) -> Value {
+    let first: &Value = transactions_data.get(0).unwrap();
+    return first.to_owned();
+}
+
+pub fn get_block_id_from_transaction(transaction_data: Value) -> String {
+    let block_id: String = transaction_data["blockId"].to_string();
+    return utils::remove_quotes(block_id);
+}
+
+pub fn get_height_from_transaction(transaction_data: Value) -> String {
+    let height: String = transaction_data["height"].to_string();
+    return utils::remove_quotes(height);
+}
+
+pub fn get_timestamp_from_transaction(transaction_data: Value) -> String {
+    let timestamp: String = transaction_data["timestamp"].to_string();
+    return utils::remove_quotes(timestamp);
 }
