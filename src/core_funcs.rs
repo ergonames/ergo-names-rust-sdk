@@ -1,4 +1,7 @@
 use serde_json::{Value};
+use chrono::prelude::*;
+use chrono::Utc;
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
 
 use crate::data_parsers;
 use crate::endpoints;
@@ -75,32 +78,27 @@ pub fn get_block_id_registered(name: &str) -> String {
     let token_data: String = data_parsers::create_token_data(&name).unwrap();
     let token_vector: Vec<types::Token> = data_parsers::create_token_vector(token_data);
     let token_id: String = data_parsers::get_asset_minted_at_address(token_vector);
-    let token_transactions: Value = endpoints::get_token_transaction_data(&token_id).unwrap();
-    let first_transaction: Value = data_parsers::get_first_transaction(token_transactions);
+    let first_transaction: Value = endpoints::get_single_transaction_by_token_id(&token_id).unwrap();
     let block_id: String = data_parsers::get_block_id_from_transaction(first_transaction);
     return block_id;
 }
 
 pub fn get_block_registered(name: &str) -> String {
-    let token_data: String = data_parsers::create_token_data(&name).unwrap();
-    let token_vector: Vec<types::Token> = data_parsers::create_token_vector(token_data);
-    let token_id: String = data_parsers::get_asset_minted_at_address(token_vector);
-    let token_transactions: Value = endpoints::get_token_transaction_data(&token_id).unwrap();
-    let first_transaction: Value = data_parsers::get_first_transaction(token_transactions);
-    let height: String = data_parsers::get_height_from_transaction(first_transaction);
+    let block_id: String = get_block_id_registered(name);
+    let height: String = data_parsers::get_height_from_transaction(&block_id);
     return height;
 }
 
-pub fn get_timestamp_registered(name: &str) -> String{
-    let token_data: String = data_parsers::create_token_data(&name).unwrap();
-    let token_vector: Vec<types::Token> = data_parsers::create_token_vector(token_data);
-    let token_id: String = data_parsers::get_asset_minted_at_address(token_vector);
-    let token_transactions: Value = endpoints::get_token_transaction_data(&token_id).unwrap();
-    let first_transaction: Value = data_parsers::get_first_transaction(token_transactions);
-    let timestamp: String = data_parsers::get_timestamp_from_transaction(first_transaction);
-    return timestamp;
+pub fn get_timestamp_registered(name: &str) -> u64 {
+    let block_id: String = get_block_id_registered(name);
+    let timestamp: String = data_parsers::get_timestamp_from_transaction(&block_id);
+    return timestamp.parse::<u64>().unwrap();
 }
 
-pub fn get_date_registerd() {
-    todo!();
+pub fn get_date_registerd(name: &str) -> String {
+    let timestamp: u64 = get_timestamp_registered(name);
+    let reformated_time: SystemTime = UNIX_EPOCH + Duration::from_millis(timestamp);
+    let datetime: DateTime<Utc> = DateTime::<Utc>::from(reformated_time);
+    let timestamp_str: String = datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string();
+    return timestamp_str;
 }

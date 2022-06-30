@@ -93,20 +93,31 @@ pub fn convert_to_token_array(data: Vec<Value>) -> Vec<types::Token> {
     return token_vector;
 }
 
-pub fn remove_invalid_tokens(mut token_vector: Vec<types::Token>) -> Vec<types::Token> {
+pub fn remove_invalid_tokens(token_vector: Vec<types::Token>) -> Vec<types::Token> {
+    let mut new_token_vector: Vec<types::Token> = Vec::new();
     for i in 0..token_vector.len() {
         if check_name_valid(&token_vector.get(i).unwrap().name) {
-            token_vector.remove(i);
+            let tk = types::Token {
+                name: token_vector.get(i).unwrap().name.to_string(),
+                id: token_vector.get(i).unwrap().id.to_string(),
+                box_id: token_vector.get(i).unwrap().box_id.to_string(),
+            };
+            new_token_vector.push(tk);
         }
     }
-    return token_vector;
+    return new_token_vector;
 }
 
 pub fn check_correct_ownership(token_vector: Vec<types::Token>, user_address: &str) -> Vec<types::Token> {
-    let mut token_vector: Vec<types::Token> = token_vector;
+    let mut new_token_vector: Vec<types::Token> = Vec::new();
     for i in 0..token_vector.len() {
-        if token_vector.get(i).unwrap().box_id != user_address {
-            token_vector.remove(i);
+        if token_vector.get(i).unwrap().box_id == user_address {
+            let tk = types::Token {
+                name: token_vector.get(i).unwrap().name.to_string(),
+                id: token_vector.get(i).unwrap().id.to_string(),
+                box_id: token_vector.get(i).unwrap().box_id.to_string(),
+            };
+            new_token_vector.push(tk);
         }
     }
     return token_vector;
@@ -118,16 +129,18 @@ pub fn get_first_transaction(transactions_data: Value) -> Value {
 }
 
 pub fn get_block_id_from_transaction(transaction_data: Value) -> String {
-    let block_id: String = transaction_data["blockId"].to_string();
+    let block_id: String = transaction_data["items"][0]["headerId"].to_string();
     return utils::remove_quotes(block_id);
 }
 
-pub fn get_height_from_transaction(transaction_data: Value) -> String {
-    let height: String = transaction_data["height"].to_string();
+pub fn get_height_from_transaction(block_id: &str) -> String {
+    let block_data: Value = endpoints::get_block_by_id(block_id).unwrap();
+    let height: String = block_data["block"]["header"]["height"].to_string();
     return utils::remove_quotes(height);
 }
 
-pub fn get_timestamp_from_transaction(transaction_data: Value) -> String {
-    let timestamp: String = transaction_data["timestamp"].to_string();
+pub fn get_timestamp_from_transaction(block_id: &str) -> String {
+    let block_data: Value = endpoints::get_block_by_id(block_id).unwrap();
+    let timestamp: String = block_data["block"]["header"]["timestamp"].to_string();
     return utils::remove_quotes(timestamp);
 }

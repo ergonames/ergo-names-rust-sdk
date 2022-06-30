@@ -18,6 +18,13 @@ pub fn get_box_by_id(box_id: &str) -> Result<Value> {
     return Ok(data);
 }
 
+pub fn get_block_by_id(block_id: &str) -> Result<Value> {
+    let url: String = format!("{}api/v1/blocks/{}", consts::EXPLORER_API_URL, block_id);
+    let resp: String = reqwest::blocking::get(url)?.text()?;
+    let data: Value = serde_json::from_str(&resp)?;
+    return Ok(data);
+}
+
 pub fn get_token_transaction_data(token_id: &str) -> Result<Value> {
     let total: u64 = data_parsers::get_max_transactions_for_token(token_id);
     let url: String = format!("{}api/v1/tokens/search?query={}&offset={}", consts::EXPLORER_API_URL, token_id, total-1);
@@ -27,7 +34,14 @@ pub fn get_token_transaction_data(token_id: &str) -> Result<Value> {
 }
 
 pub fn get_single_transactions_for_token(token_id: &str) -> Result<Value> {
-    let url: String = format!("{}api/v1/tokens/search?query={}&limit=1", consts::EXPLORER_API_URL, token_id);
+    let url: String = format!("{}api/v1/tokens/search/?query={}&limit=1", consts::EXPLORER_API_URL, token_id);
+    let resp: String = reqwest::blocking::get(url)?.text()?;
+    let data: Value = serde_json::from_str(&resp)?;
+    return Ok(data);
+}
+
+pub fn get_single_transaction_by_token_id(token_id: &str) -> Result<Value> {
+    let url: String = format!("{}api/v1/assets/search/byTokenId?query={}&limit=1", consts::EXPLORER_API_URL, token_id);
     let resp: String = reqwest::blocking::get(url)?.text()?;
     let data: Value = serde_json::from_str(&resp)?;
     return Ok(data);
