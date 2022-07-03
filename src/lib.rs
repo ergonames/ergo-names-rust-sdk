@@ -164,7 +164,7 @@ fn get_address_confirmed_balance(address: &str) -> Result<Value> {
     return Ok(data)
 }
 
-pub fn create_token_data(token_name: &str) -> Result<String> {
+fn create_token_data(token_name: &str) -> Result<String> {
     let total: u64 = get_token_data(&token_name, 1, 0).unwrap()["total"].to_owned().as_u64().unwrap();
     let needed_calls: u64 = (total / 500) + 1;
     let mut offset: u64 = 0;
@@ -180,7 +180,7 @@ pub fn create_token_data(token_name: &str) -> Result<String> {
     }
 }
 
-pub fn create_token_vector(data: String) -> Vec<Token> {
+fn create_token_vector(data: String) -> Vec<Token> {
     let data_value: Value = serde_json::from_str(&data).unwrap();
     let mut token_vector: Vec<Token> = Vec::new();
     for i in 0..data_value.as_array().unwrap().len() {
@@ -195,7 +195,7 @@ pub fn create_token_vector(data: String) -> Vec<Token> {
     return token_vector
 }
 
-pub fn get_asset_minted_at_address(token_vector: Vec<Token>) -> String{
+fn get_asset_minted_at_address(token_vector: Vec<Token>) -> String{
     for i in token_vector {
         let address: String = get_box_address(&i.box_id);
         if address == MINT_ADDRESS.to_owned() {
@@ -205,37 +205,37 @@ pub fn get_asset_minted_at_address(token_vector: Vec<Token>) -> String{
     return "None".to_owned();
 }
 
-pub fn get_box_address(box_id: &str) -> String {
+fn get_box_address(box_id: &str) -> String {
     let box_data: Value = get_box_by_id(box_id).unwrap();
     let address: String = remove_quotes(box_data["address"].to_string());
     return address;
 }
 
-pub fn get_max_transactions_for_token(token_id: &str) -> u64 {
+fn get_max_transactions_for_token(token_id: &str) -> u64 {
     let data: Value = get_single_transactions_for_token(token_id).unwrap();
     let total: u64 = data["total"].as_u64().unwrap();
     return total;
 }
 
-pub fn get_last_transaction(data: Value) -> Result<Value> {
+fn get_last_transaction(data: Value) -> Result<Value> {
     let length: usize = data.as_array().unwrap().len();
     let last_borrowed: &Value = &data.get(length-1).unwrap();
     let last: Value = last_borrowed.to_owned();
     return Ok(last);
 }
 
-pub fn get_box_id_from_token_data(data: Value) -> String{
+fn get_box_id_from_token_data(data: Value) -> String{
     let box_id: String = data["boxId"].to_string();
     return remove_quotes(box_id);
 }
 
-pub fn get_address_tokens(address: &str) -> Vec<Value> {
+fn get_address_tokens(address: &str) -> Vec<Value> {
     let balance: Value = get_address_confirmed_balance(address).unwrap();
     let tokens: &Vec<Value> = &balance["tokens"].as_array().unwrap().to_owned();
     return tokens.to_owned();
 }
 
-pub fn convert_to_token_array(data: Vec<Value>) -> Vec<Token> {
+fn convert_to_token_array(data: Vec<Value>) -> Vec<Token> {
     let mut token_vector: Vec<Token> = Vec::new();
     for i in 0..data.len() {
         let raw = data.get(i).unwrap();
@@ -249,7 +249,7 @@ pub fn convert_to_token_array(data: Vec<Value>) -> Vec<Token> {
     return token_vector;
 }
 
-pub fn remove_invalid_tokens(token_vector: Vec<Token>) -> Vec<Token> {
+fn remove_invalid_tokens(token_vector: Vec<Token>) -> Vec<Token> {
     let mut new_token_vector: Vec<Token> = Vec::new();
     for i in 0..token_vector.len() {
         if check_name_valid(&token_vector.get(i).unwrap().name) {
@@ -264,7 +264,7 @@ pub fn remove_invalid_tokens(token_vector: Vec<Token>) -> Vec<Token> {
     return new_token_vector;
 }
 
-pub fn check_correct_ownership(token_vector: Vec<Token>, user_address: &str) -> Vec<Token> {
+fn check_correct_ownership(token_vector: Vec<Token>, user_address: &str) -> Vec<Token> {
     let mut new_token_vector: Vec<Token> = Vec::new();
     for i in 0..token_vector.len() {
         if token_vector.get(i).unwrap().box_id == user_address {
