@@ -107,7 +107,7 @@ pub fn get_date_registerd(name: &str) -> String {
     let timestamp: u64 = get_timestamp_registered(name);
     let reformated_time: SystemTime = UNIX_EPOCH + Duration::from_millis(timestamp);
     let datetime: DateTime<Utc> = DateTime::<Utc>::from(reformated_time);
-    let timestamp_str: String = datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string();
+    let timestamp_str: String = datetime.format("%Y-%m-%d").to_string();
     return timestamp_str;
 }
 
@@ -329,31 +329,31 @@ mod tests {
     #[test]
     fn check_get_block_id_registered() {
         let name: &str = "~balb";
-        assert_eq!(get_block_id_registered(name), "238a7baa9750510fb9482cdd01f47dfd1f89def36868e03cb9cdc38cf296e0f8");
+        assert_eq!(get_block_id_registered(name), "a5e0ab7f95142ceee7f3b6b5a5318153b345292e9aaae7c56825da115e196d08");
     }
 
     #[test]
     fn check_get_block_registered() {
         let name: &str = "~balb";
-        assert_eq!(get_block_registered(name), 231885);
+        assert_eq!(get_block_registered(name), 60761);
     }
 
     #[test]
     fn check_get_timestamp_registered() {
         let name: &str = "~balb";
-        assert_eq!(get_timestamp_registered(name), 1650222939771);
+        assert_eq!(get_timestamp_registered(name), 1656968987794);
     }
 
     #[test]
     fn check_get_date_registered() {
         let name: &str = "~balb";
-        assert_eq!(get_date_registerd(name), "2022-04-17 19:15:39.771000000");
+        assert_eq!(get_date_registerd(name), "2022-07-04");
     }
 
     #[test]
     fn check_get_total_amount_owned() {
         let address: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
-        assert_eq!(get_total_amount_owned(address), 3);
+        assert_eq!(get_total_amount_owned(address), 1);
     }
 
     #[test]
@@ -361,8 +361,8 @@ mod tests {
         let address: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
         let legit_token = Token {
             name: String::from("~balb"),
-            id: String::from("a22bfbc3545ba99b8a8e4f9fe7841fa7a93e44c6f1e1bcebc65f3ef464b108b1"),
-            box_id: String::from("a00e1277f211adc594012ef52d656558d905e00908228765ae9a92d09c9a88e2"),
+            id: String::from("2b41b93d22a46de0b0ed9c8b814b766298adbf2ff304f83ee2426f47ac33d9b8"),
+            box_id: String::from("82b9b9773471041f1fa4763dc14e156f6c044e41d99ac7ef34709be4fef7c6d6"),
         };
         let mut vec = Vec::<Token>::new();
         vec.push(legit_token);
