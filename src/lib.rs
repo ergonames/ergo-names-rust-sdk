@@ -144,13 +144,6 @@ fn get_token_transaction_data(token_id: &str) -> Result<Value> {
     return Ok(data["items"].to_owned());
 }
 
-fn get_single_transactions_for_token(token_id: &str) -> Result<Value> {
-    let url: String = format!("{}api/v1/tokens/search/?query={}&limit=1", EXPLORER_API_URL, token_id);
-    let resp: String = reqwest::blocking::get(url)?.text()?;
-    let data: Value = serde_json::from_str(&resp)?;
-    return Ok(data);
-}
-
 fn get_single_transaction_by_token_id(token_id: &str) -> Result<Value> {
     let url: String = format!("{}api/v1/assets/search/byTokenId?query={}&limit=1", EXPLORER_API_URL, token_id);
     let resp: String = reqwest::blocking::get(url)?.text()?;
@@ -210,19 +203,6 @@ fn get_box_address(box_id: &str) -> String {
     let box_data: Value = get_box_by_id(box_id).unwrap();
     let address: String = remove_quotes(box_data["address"].to_string());
     return address;
-}
-
-fn get_max_transactions_for_token(token_id: &str) -> u64 {
-    let data: Value = get_single_transactions_for_token(token_id).unwrap();
-    let total: u64 = data["total"].as_u64().unwrap();
-    return total;
-}
-
-fn get_last_transaction(data: Value) -> Result<Value> {
-    let length: usize = data.as_array().unwrap().len();
-    let last_borrowed: &Value = &data.get(length-1).unwrap();
-    let last: Value = last_borrowed.to_owned();
-    return Ok(last);
 }
 
 fn get_last_transaction_for_token(data: Value) -> Value {
