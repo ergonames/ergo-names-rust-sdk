@@ -288,63 +288,56 @@ fn get_timestamp_from_transaction(block_id: &str) -> String {
 mod tests {
     use crate::*;
 
+    const NAME: &str = "~balb";
+    const ADDRESS: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
+
     #[test]
-    fn check_resolve_ergoname() {
-        let name: &str = "~balb";
-        assert_eq!(resolve_ergoname(name), "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL");
+    fn test_resolve_ergoname() {
+        assert_eq!(resolve_ergoname(NAME), "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL");
     }
 
     #[test]
-    fn check_check_already_registered() {
-        let name: &str = "~balb";
-        assert_eq!(check_already_registered(name), true);
+    fn test_check_already_registered() {
+        assert_eq!(check_already_registered(NAME), true);
     }
 
     #[test]
-    fn check_check_name_valid() {
-        let name: &str = "~balb";
-        assert_eq!(check_name_valid(name), true);
+    fn test_check_name_valid() {
+        assert_eq!(check_name_valid(NAME), true);
     }
 
     #[test]
-    fn check_check_name_price() {
-        let name: &str = "~balb";
-        assert_eq!(check_name_price(name), 0);
+    fn test_check_name_price() {
+        assert_eq!(check_name_price(NAME), 0);
     }
 
     #[test]
-    fn check_get_block_id_registered() {
-        let name: &str = "~balb";
-        assert_eq!(get_block_id_registered(name), "a5e0ab7f95142ceee7f3b6b5a5318153b345292e9aaae7c56825da115e196d08");
+    fn test_get_block_id_registered() {
+        assert_eq!(get_block_id_registered(NAME), "a5e0ab7f95142ceee7f3b6b5a5318153b345292e9aaae7c56825da115e196d08");
     }
 
     #[test]
-    fn check_get_block_registered() {
-        let name: &str = "~balb";
-        assert_eq!(get_block_registered(name), 60761);
+    fn test_get_block_registered() {
+        assert_eq!(get_block_registered(NAME), 60761);
     }
 
     #[test]
-    fn check_get_timestamp_registered() {
-        let name: &str = "~balb";
-        assert_eq!(get_timestamp_registered(name), 1656968987794);
+    fn test_get_timestamp_registered() {
+        assert_eq!(get_timestamp_registered(NAME), 1656968987794);
     }
 
     #[test]
-    fn check_get_date_registered() {
-        let name: &str = "~balb";
-        assert_eq!(get_date_registerd(name), "2022-07-04");
+    fn test_get_date_registered() {
+        assert_eq!(get_date_registerd(NAME), "2022-07-04");
     }
 
     #[test]
-    fn check_get_total_amount_owned() {
-        let address: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
-        assert_eq!(get_total_amount_owned(address), 1);
+    fn test_get_total_amount_owned() {
+        assert_eq!(get_total_amount_owned(ADDRESS), 1);
     }
 
     #[test]
-    fn check_reverse_search() {
-        let address: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
+    fn test_reverse_search() {
         let legit_token = Token {
             name: String::from("~balb"),
             id: String::from("2b41b93d22a46de0b0ed9c8b814b766298adbf2ff304f83ee2426f47ac33d9b8"),
@@ -352,7 +345,7 @@ mod tests {
         };
         let mut vec = Vec::<Token>::new();
         vec.push(legit_token);
-        assert_eq!(vec_compare(reverse_search(address), vec), true);
+        assert_eq!(vec_compare(reverse_search(ADDRESS), vec), true);
     }
 
     fn vec_compare(va: Vec<Token>, vb: Vec<Token>) -> bool {
