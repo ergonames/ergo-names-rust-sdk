@@ -12,7 +12,7 @@ pub struct  Token {
 }
 
 pub const EXPLORER_API_URL: &str = "https://api-testnet.ergoplatform.com/";
-pub const MINT_ADDRESS: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
+pub const MINT_ADDRESS: &str = "3WycHxEz8ExeEWpUBwvu1FKrpY8YQCiH1S9PfnAvBX1K73BXBXZa";
 
 pub fn check_name_valid(name: &str) -> bool {
     for c in name.chars() {
