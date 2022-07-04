@@ -4,6 +4,7 @@ use chrono::prelude::*;
 use chrono::Utc;
 use std::time::{SystemTime, UNIX_EPOCH, Duration};
 
+#[derive(Debug, Clone)]
 pub struct  Token {
     pub name: String,
     pub id: String,
@@ -37,9 +38,9 @@ pub fn reformat_name(name: &str) -> String {
     return name.to_lowercase();
 }
 
-pub fn check_name_price(name: &str) -> String {
+pub fn check_name_price(name: &str) -> i32 {
     let _: String = reformat_name(name);
-    return "None".to_owned();
+    return 0;
 }
 
 pub fn resolve_ergoname(name: &str) -> String {
@@ -89,9 +90,10 @@ pub fn get_block_id_registered(name: &str) -> String {
     return block_id;
 }
 
-pub fn get_block_registered(name: &str) -> String {
+pub fn get_block_registered(name: &str) -> i32 {
     let block_id: String = get_block_id_registered(name);
-    let height: String = get_height_from_transaction(&block_id);
+    let height_str: String = remove_quotes(get_height_from_transaction(&block_id));
+    let height: i32 = height_str.parse::<i32>().unwrap();
     return height;
 }
 
@@ -294,4 +296,89 @@ fn get_timestamp_from_transaction(block_id: &str) -> String {
     let block_data: Value = get_block_by_id(block_id).unwrap();
     let timestamp: String = block_data["block"]["header"]["timestamp"].to_string();
     return remove_quotes(timestamp);
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    #[test]
+    fn check_resolve_ergoname() {
+        let name: &str = "~balb";
+        assert_eq!(resolve_ergoname(name), "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL");
+    }
+
+    #[test]
+    fn check_check_already_registered() {
+        let name: &str = "~balb";
+        assert_eq!(check_already_registered(name), true);
+    }
+
+    #[test]
+    fn check_check_name_valid() {
+        let name: &str = "~balb";
+        assert_eq!(check_name_valid(name), true);
+    }
+
+    #[test]
+    fn check_check_name_price() {
+        let name: &str = "~balb";
+        assert_eq!(check_name_price(name), 0);
+    }
+
+    #[test]
+    fn check_get_block_id_registered() {
+        let name: &str = "~balb";
+        assert_eq!(get_block_id_registered(name), "238a7baa9750510fb9482cdd01f47dfd1f89def36868e03cb9cdc38cf296e0f8");
+    }
+
+    #[test]
+    fn check_get_block_registered() {
+        let name: &str = "~balb";
+        assert_eq!(get_block_registered(name), 231885);
+    }
+
+    #[test]
+    fn check_get_timestamp_registered() {
+        let name: &str = "~balb";
+        assert_eq!(get_timestamp_registered(name), 1650222939771);
+    }
+
+    #[test]
+    fn check_get_date_registered() {
+        let name: &str = "~balb";
+        assert_eq!(get_date_registerd(name), "2022-04-17 19:15:39.771000000");
+    }
+
+    #[test]
+    fn check_get_total_amount_owned() {
+        let address: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
+        assert_eq!(get_total_amount_owned(address), 3);
+    }
+
+    #[test]
+    fn check_reverse_search() {
+        let address: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
+        let legit_token = Token {
+            name: String::from("~balb"),
+            id: String::from("a22bfbc3545ba99b8a8e4f9fe7841fa7a93e44c6f1e1bcebc65f3ef464b108b1"),
+            box_id: String::from("a00e1277f211adc594012ef52d656558d905e00908228765ae9a92d09c9a88e2"),
+        };
+        let mut vec = Vec::<Token>::new();
+        vec.push(legit_token);
+        assert_eq!(vec_compare(reverse_search(address), vec), true);
+    }
+
+    fn vec_compare(va: Vec<Token>, vb: Vec<Token>) -> bool {
+        if va.len() != vb.len() {
+            return false;
+        }
+        for i in 0..va.len() {
+            if va.get(i).unwrap().name != vb.get(i).unwrap().name {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
