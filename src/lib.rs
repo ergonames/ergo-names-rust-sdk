@@ -48,7 +48,7 @@ pub fn resolve_ergoname(name: &str) -> Option<String> {
     if token_data != "None" {
         let token_vector: Vec<Token> = create_token_vector(token_data);
         let token_id: String = get_asset_minted_at_address(token_vector);
-        let token_transactions: Value = get_token_transaction_data(&token_id).unwrap();
+        let token_transactions: Value = get_token_transaction_data(&token_id, None).unwrap();
         let token_last_transaction: Value = get_last_transaction_for_token(token_transactions);
         let token_current_box_id: String = get_box_id_from_token_data(token_last_transaction);
         let address: String = get_box_address(&token_current_box_id);
@@ -91,7 +91,7 @@ pub fn get_block_id_registered(name: &str) -> Option<String> {
     if token_data != "None" {
         let token_vector: Vec<Token> = create_token_vector(token_data);
         let token_id: String = get_asset_minted_at_address(token_vector);
-        let first_transaction: Value = get_single_transaction_by_token_id(&token_id).unwrap();
+        let first_transaction: Value = get_single_transaction_by_token_id(&token_id, None).unwrap();
         let block_id: String = get_block_id_from_transaction(first_transaction);
         return Some(block_id);
     }
@@ -133,56 +133,98 @@ fn remove_quotes(i_str: String) -> String {
     return n_str;
 }
 
-fn get_token_data(token_name: &str, limit: u64, offset: u64) -> Result<Value> {
-    let url: String = format!("{}api/v1/tokens/search?query={}&limit={}&offset={}", EXPLORER_API_URL, token_name, limit, offset);
-    let resp: String = reqwest::blocking::get(url)?.text()?;
-    let data: Value = serde_json::from_str(&resp)?;
-    return Ok(data);
+fn get_token_data(token_name: &str, limit: u64, offset: u64, explorer_url: Option<String>) -> Result<Value> {
+    if explorer_url.is_none() {
+        let url: String = format!("{}api/v1/tokens/search?query={}&limit={}&offset={}", EXPLORER_API_URL, token_name, limit, offset);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    } else {
+        let url: String = format!("{}api/v1/tokens/search?query={}&limit={}&offset={}", explorer_url.unwrap(), token_name, limit, offset);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    }
 }
 
-fn get_box_by_id(box_id: &str) -> Result<Value> {
-    let url: String = format!("{}api/v1/boxes/{}", EXPLORER_API_URL, box_id);
-    let resp: String = reqwest::blocking::get(url)?.text()?;
-    let data: Value = serde_json::from_str(&resp)?;
-    return Ok(data);
+fn get_box_by_id(box_id: &str, explorer_url: Option<String>) -> Result<Value> {
+    if explorer_url.is_none() {
+        let url: String = format!("{}api/v1/boxes/{}", EXPLORER_API_URL, box_id);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    } else {
+        let url: String = format!("{}api/v1/boxes/{}", explorer_url.unwrap(), box_id);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    }
 }
 
-fn get_block_by_id(block_id: &str) -> Result<Value> {
-    let url: String = format!("{}api/v1/blocks/{}", EXPLORER_API_URL, block_id);
-    let resp: String = reqwest::blocking::get(url)?.text()?;
-    let data: Value = serde_json::from_str(&resp)?;
-    return Ok(data);
+fn get_block_by_id(block_id: &str, explorer_url: Option<String>) -> Result<Value> {
+    if explorer_url.is_none() {
+        let url: String = format!("{}api/v1/blocks/{}", EXPLORER_API_URL, block_id);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    } else {
+        let url: String = format!("{}api/v1/blocks/{}", explorer_url.unwrap(), block_id);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    }
 }
 
-fn get_token_transaction_data(token_id: &str) -> Result<Value> {
-    let url: String = format!("{}api/v1/assets/search/byTokenId?query={}", EXPLORER_API_URL, token_id);
-    let resp: String = reqwest::blocking::get(url)?.text()?;
-    let data: Value = serde_json::from_str(&resp)?;
-    return Ok(data["items"].to_owned());
+fn get_token_transaction_data(token_id: &str, explorer_url: Option<String>) -> Result<Value> {
+    if explorer_url.is_none() {
+        let url: String = format!("{}api/v1/assets/search/byTokenId?query={}", EXPLORER_API_URL, token_id);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data["items"].to_owned());
+    } else {
+        let url: String = format!("{}api/v1/assets/search/byTokenId?query={}", explorer_url.unwrap(), token_id);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data["items"].to_owned());
+    }
 }
 
-fn get_single_transaction_by_token_id(token_id: &str) -> Result<Value> {
-    let url: String = format!("{}api/v1/assets/search/byTokenId?query={}&limit=1", EXPLORER_API_URL, token_id);
-    let resp: String = reqwest::blocking::get(url)?.text()?;
-    let data: Value = serde_json::from_str(&resp)?;
-    return Ok(data);
+fn get_single_transaction_by_token_id(token_id: &str, explorer_url: Option<String>) -> Result<Value> {
+    if explorer_url.is_none() {
+        let url: String = format!("{}api/v1/assets/search/byTokenId?query={}&limit=1", EXPLORER_API_URL, token_id);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    } else {
+        let url: String = format!("{}api/v1/assets/search/byTokenId?query={}&limit=1", explorer_url.unwrap(), token_id);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    }
 }
 
-fn get_address_confirmed_balance(address: &str) -> Result<Value> {
-    let url: String = format!("{}api/v1/addresses/{}/balance/confirmed", EXPLORER_API_URL, address);
-    let resp: String = reqwest::blocking::get(url)?.text()?;
-    let data: Value = serde_json::from_str(&resp)?;
-    return Ok(data)
+fn get_address_confirmed_balance(address: &str, explorer_url: Option<String>) -> Result<Value> {
+    if explorer_url.is_none() {
+        let url: String = format!("{}api/v1/addresses/{}/balance/confirmed", EXPLORER_API_URL, address);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    } else {
+        let url: String = format!("{}api/v1/addresses/{}/balance/confirmed", explorer_url.unwrap(), address);
+        let resp: String = reqwest::blocking::get(url)?.text()?;
+        let data: Value = serde_json::from_str(&resp)?;
+        return Ok(data);
+    }
 }
 
 fn create_token_data(token_name: &str) -> Result<String> {
-    let total: u64 = get_token_data(&token_name, 1, 0).unwrap()["total"].to_owned().as_u64().unwrap();
+    let total: u64 = get_token_data(&token_name, 1, 0, None).unwrap()["total"].to_owned().as_u64().unwrap();
     let needed_calls: u64 = (total / 500) + 1;
     let mut offset: u64 = 0;
     let mut transaction_data: String = "".to_owned();
     if total > 0 {
         for _i in 0..needed_calls {
-            transaction_data = transaction_data + &get_token_data(&token_name, 500, offset).unwrap()["items"].to_string();
+            transaction_data = transaction_data + &get_token_data(&token_name, 500, offset, None).unwrap()["items"].to_string();
             offset = offset + 500;
         }
         return Ok(transaction_data);
@@ -217,7 +259,7 @@ fn get_asset_minted_at_address(token_vector: Vec<Token>) -> String{
 }
 
 fn get_box_address(box_id: &str) -> String {
-    let box_data: Value = get_box_by_id(box_id).unwrap();
+    let box_data: Value = get_box_by_id(box_id, None).unwrap();
     let address: String = remove_quotes(box_data["address"].to_string());
     return address;
 }
@@ -235,7 +277,7 @@ fn get_box_id_from_token_data(data: Value) -> String{
 }
 
 fn get_address_tokens(address: &str) -> Vec<Value> {
-    let balance: Value = get_address_confirmed_balance(address).unwrap();
+    let balance: Value = get_address_confirmed_balance(address, None).unwrap();
     let tokens: &Vec<Value> = &balance["tokens"].as_array().unwrap().to_owned();
     return tokens.to_owned();
 }
@@ -290,13 +332,13 @@ fn get_block_id_from_transaction(transaction_data: Value) -> String {
 }
 
 fn get_height_from_transaction(block_id: &str) -> String {
-    let block_data: Value = get_block_by_id(block_id).unwrap();
+    let block_data: Value = get_block_by_id(block_id, None).unwrap();
     let height: String = block_data["block"]["header"]["height"].to_string();
     return remove_quotes(height);
 }
 
 fn get_timestamp_from_transaction(block_id: &str) -> String {
-    let block_data: Value = get_block_by_id(block_id).unwrap();
+    let block_data: Value = get_block_by_id(block_id, None).unwrap();
     let timestamp: String = block_data["block"]["header"]["timestamp"].to_string();
     return remove_quotes(timestamp);
 }
