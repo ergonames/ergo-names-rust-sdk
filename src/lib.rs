@@ -53,9 +53,8 @@ pub fn resolve_ergoname(name: &str) -> String {
         let token_current_box_id: String = get_box_id_from_token_data(token_last_transaction);
         let address: String = get_box_address(&token_current_box_id);
         return address;
-    } else {
-        return "None".to_owned();
     }
+    return "None".to_owned();
 }
 
 pub fn check_already_registered(name: &str) -> bool {
@@ -83,32 +82,44 @@ pub fn get_total_amount_owned(address: &str) -> u32 {
 
 pub fn get_block_id_registered(name: &str) -> String {
     let token_data: String = create_token_data(&name).unwrap();
-    let token_vector: Vec<Token> = create_token_vector(token_data);
-    let token_id: String = get_asset_minted_at_address(token_vector);
-    let first_transaction: Value = get_single_transaction_by_token_id(&token_id).unwrap();
-    let block_id: String = get_block_id_from_transaction(first_transaction);
-    return block_id;
+    if token_data != "None" {
+        let token_vector: Vec<Token> = create_token_vector(token_data);
+        let token_id: String = get_asset_minted_at_address(token_vector);
+        let first_transaction: Value = get_single_transaction_by_token_id(&token_id).unwrap();
+        let block_id: String = get_block_id_from_transaction(first_transaction);
+        return block_id;
+    }
+    return "None".to_owned();
 }
 
 pub fn get_block_registered(name: &str) -> i32 {
     let block_id: String = get_block_id_registered(name);
-    let height_str: String = remove_quotes(get_height_from_transaction(&block_id));
-    let height: i32 = height_str.parse::<i32>().unwrap();
-    return height;
+    if block_id != "None" {
+        let height_str: String = remove_quotes(get_height_from_transaction(&block_id));
+        let height: i32 = height_str.parse::<i32>().unwrap();
+        return height;
+    }
+    return 0;
 }
 
 pub fn get_timestamp_registered(name: &str) -> u64 {
     let block_id: String = get_block_id_registered(name);
-    let timestamp: String = get_timestamp_from_transaction(&block_id);
-    return timestamp.parse::<u64>().unwrap();
+    if block_id != "None" {
+        let timestamp: String = get_timestamp_from_transaction(&block_id);
+        return timestamp.parse::<u64>().unwrap();
+    }
+    return 0;
 }
 
 pub fn get_date_registerd(name: &str) -> String {
     let timestamp: u64 = get_timestamp_registered(name);
-    let reformated_time: SystemTime = UNIX_EPOCH + Duration::from_millis(timestamp);
-    let datetime: DateTime<Utc> = DateTime::<Utc>::from(reformated_time);
-    let timestamp_str: String = datetime.format("%Y-%m-%d").to_string();
-    return timestamp_str;
+    if timestamp != 0 {
+        let reformated_time: SystemTime = UNIX_EPOCH + Duration::from_millis(timestamp);
+        let datetime: DateTime<Utc> = DateTime::<Utc>::from(reformated_time);
+        let timestamp_str: String = datetime.format("%Y-%m-%d").to_string();
+        return timestamp_str;
+    }
+    return "None".to_owned();
 }
 
 fn remove_quotes(i_str: String) -> String {
@@ -289,11 +300,18 @@ mod tests {
     use crate::*;
 
     const NAME: &str = "~balb";
+    const NULL_NAME: &str = "~zack";
     const ADDRESS: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
+    const NULL_ADDRESS: &str = "3Wxf2LxF8HUSzfnT6bDGGUDNp1YMvWo5JWxjeSpszuV6w6UJGLSf";
 
     #[test]
     fn test_resolve_ergoname() {
         assert_eq!(resolve_ergoname(NAME), "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL");
+    }
+
+    #[test]
+    fn test_null_resolve_ergoname() {
+        assert_eq!(resolve_ergoname(NULL_NAME), "None");
     }
 
     #[test]
@@ -302,8 +320,18 @@ mod tests {
     }
 
     #[test]
+    fn test_null_check_already_registered() {
+        assert_eq!(check_already_registered(NULL_NAME), false);
+    }
+
+    #[test]
     fn test_check_name_valid() {
         assert_eq!(check_name_valid(NAME), true);
+    }
+
+    #[test]
+    fn test_null_check_name_valid() {
+        assert_eq!(check_name_valid(NULL_NAME), true);
     }
 
     #[test]
@@ -312,8 +340,18 @@ mod tests {
     }
 
     #[test]
+    fn test_null_check_name_price() {
+        assert_eq!(check_name_price(NULL_NAME), 0);
+    }
+
+    #[test]
     fn test_get_block_id_registered() {
         assert_eq!(get_block_id_registered(NAME), "a5e0ab7f95142ceee7f3b6b5a5318153b345292e9aaae7c56825da115e196d08");
+    }
+
+    #[test]
+    fn test_null_get_block_id_registered() {
+        assert_eq!(get_block_id_registered(NULL_NAME), "None");
     }
 
     #[test]
@@ -322,8 +360,18 @@ mod tests {
     }
 
     #[test]
+    fn test_null_get_block_registered() {
+        assert_eq!(get_block_registered(NULL_NAME), 0);
+    }
+
+    #[test]
     fn test_get_timestamp_registered() {
         assert_eq!(get_timestamp_registered(NAME), 1656968987794);
+    }
+
+    #[test]
+    fn test_null_get_timestamp_registered() {
+        assert_eq!(get_timestamp_registered(NULL_NAME), 0);
     }
 
     #[test]
@@ -332,8 +380,18 @@ mod tests {
     }
 
     #[test]
+    fn test_null_get_date_registered() {
+        assert_eq!(get_date_registerd(NULL_NAME), "None");
+    }
+
+    #[test]
     fn test_get_total_amount_owned() {
         assert_eq!(get_total_amount_owned(ADDRESS), 1);
+    }
+
+    #[test]
+    fn test_null_get_total_amount_owned() {
+        assert_eq!(get_total_amount_owned(NULL_ADDRESS), 0);
     }
 
     #[test]
@@ -346,6 +404,11 @@ mod tests {
         let mut vec = Vec::<Token>::new();
         vec.push(legit_token);
         assert_eq!(vec_compare(reverse_search(ADDRESS), vec), true);
+    }
+
+    #[test]
+    fn test_null_reverse_search() {
+        assert_eq!(vec_compare(reverse_search(NULL_ADDRESS), Vec::<Token>::new()), true);
     }
 
     fn vec_compare(va: Vec<Token>, vb: Vec<Token>) -> bool {
