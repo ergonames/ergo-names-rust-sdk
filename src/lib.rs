@@ -43,12 +43,12 @@ pub fn check_name_price(name: &str) -> i32 {
     return 0;
 }
 
-pub fn resolve_ergoname(name: &str) -> Option<String> {
-    let token_data: String = create_token_data(&name).unwrap();
+pub fn resolve_ergoname(name: &str, explorer_url: Option<String>) -> Option<String> {
+    let token_data: String = create_token_data(&name, explorer_url.clone()).unwrap();
     if token_data != "None" {
         let token_vector: Vec<Token> = create_token_vector(token_data);
         let token_id: String = get_asset_minted_at_address(token_vector);
-        let token_transactions: Value = get_token_transaction_data(&token_id, None).unwrap();
+        let token_transactions: Value = get_token_transaction_data(&token_id, explorer_url).unwrap();
         let token_last_transaction: Value = get_last_transaction_for_token(token_transactions);
         let token_current_box_id: String = get_box_id_from_token_data(token_last_transaction);
         let address: String = get_box_address(&token_current_box_id);
@@ -57,8 +57,8 @@ pub fn resolve_ergoname(name: &str) -> Option<String> {
     return None
 }
 
-pub fn check_already_registered(name: &str) -> bool {
-    let address: Option<String> = resolve_ergoname(name);
+pub fn check_already_registered(name: &str, explorer_url: Option<String>) -> bool {
+    let address: Option<String> = resolve_ergoname(name, explorer_url);
     if address.is_none() {
         return false;
     } else {
@@ -66,8 +66,8 @@ pub fn check_already_registered(name: &str) -> bool {
     }
 }
 
-pub fn reverse_search(address: &str) -> Option<Vec<Token>> {
-    let token_data: Vec<Value> = get_address_tokens(address);
+pub fn reverse_search(address: &str, explorer_url: Option<String>) -> Option<Vec<Token>> {
+    let token_data: Vec<Value> = get_address_tokens(address, explorer_url);
     if token_data.len() != 0 {
         let token_vector: Vec<Token> = convert_to_token_array(token_data);
         let valid_names_vector: Vec<Token> = remove_invalid_tokens(token_vector);
@@ -77,8 +77,8 @@ pub fn reverse_search(address: &str) -> Option<Vec<Token>> {
     return None;
 }
 
-pub fn get_total_amount_owned(address: &str) -> Option<u32> {
-    let token_vector: Option<Vec<Token>> = reverse_search(address);
+pub fn get_total_amount_owned(address: &str, explorer_url: Option<String>) -> Option<u32> {
+    let token_vector: Option<Vec<Token>> = reverse_search(address, explorer_url);
     if token_vector.is_some() {
         let total_amount: u32 = token_vector.unwrap().len() as u32;
         return Some(total_amount);
@@ -86,8 +86,8 @@ pub fn get_total_amount_owned(address: &str) -> Option<u32> {
     return None;
 }
 
-pub fn get_block_id_registered(name: &str) -> Option<String> {
-    let token_data: String = create_token_data(&name).unwrap();
+pub fn get_block_id_registered(name: &str, explorer_url: Option<String>) -> Option<String> {
+    let token_data: String = create_token_data(&name, explorer_url).unwrap();
     if token_data != "None" {
         let token_vector: Vec<Token> = create_token_vector(token_data);
         let token_id: String = get_asset_minted_at_address(token_vector);
@@ -98,8 +98,8 @@ pub fn get_block_id_registered(name: &str) -> Option<String> {
     return None;
 }
 
-pub fn get_block_registered(name: &str) -> Option<i32> {
-    let block_id: Option<String> = get_block_id_registered(name);
+pub fn get_block_registered(name: &str, explorer_url: Option<String>) -> Option<i32> {
+    let block_id: Option<String> = get_block_id_registered(name, explorer_url);
     if block_id.is_some() {
         let height_str: String = remove_quotes(get_height_from_transaction(&block_id.unwrap()));
         let height: i32 = height_str.parse::<i32>().unwrap();
@@ -108,8 +108,8 @@ pub fn get_block_registered(name: &str) -> Option<i32> {
     return None;
 }
 
-pub fn get_timestamp_registered(name: &str) -> Option<u64> {
-    let block_id: Option<String> = get_block_id_registered(name);
+pub fn get_timestamp_registered(name: &str, explorer_url: Option<String>) -> Option<u64> {
+    let block_id: Option<String> = get_block_id_registered(name, explorer_url);
     if block_id.is_some() {
         let timestamp: String = get_timestamp_from_transaction(&block_id.unwrap());
         return Some(timestamp.parse::<u64>().unwrap());
@@ -117,8 +117,8 @@ pub fn get_timestamp_registered(name: &str) -> Option<u64> {
     return None;
 }
 
-pub fn get_date_registerd(name: &str) -> Option<String> {
-    let timestamp: Option<u64> = get_timestamp_registered(name);
+pub fn get_date_registerd(name: &str, explorer_url: Option<String>) -> Option<String> {
+    let timestamp: Option<u64> = get_timestamp_registered(name, explorer_url);
     if timestamp.is_some() {
         let reformated_time: SystemTime = UNIX_EPOCH + Duration::from_millis(timestamp.unwrap());
         let datetime: DateTime<Utc> = DateTime::<Utc>::from(reformated_time);
@@ -217,14 +217,14 @@ fn get_address_confirmed_balance(address: &str, explorer_url: Option<String>) ->
     }
 }
 
-fn create_token_data(token_name: &str) -> Result<String> {
-    let total: u64 = get_token_data(&token_name, 1, 0, None).unwrap()["total"].to_owned().as_u64().unwrap();
+fn create_token_data(token_name: &str, explorer_url: Option<String>) -> Result<String> {
+    let total: u64 = get_token_data(&token_name, 1, 0, explorer_url.clone()).unwrap()["total"].to_owned().as_u64().unwrap();
     let needed_calls: u64 = (total / 500) + 1;
     let mut offset: u64 = 0;
     let mut transaction_data: String = "".to_owned();
     if total > 0 {
         for _i in 0..needed_calls {
-            transaction_data = transaction_data + &get_token_data(&token_name, 500, offset, None).unwrap()["items"].to_string();
+            transaction_data = transaction_data + &get_token_data(&token_name, 500, offset, explorer_url.clone()).unwrap()["items"].to_string();
             offset = offset + 500;
         }
         return Ok(transaction_data);
@@ -276,8 +276,8 @@ fn get_box_id_from_token_data(data: Value) -> String{
     return remove_quotes(box_id);
 }
 
-fn get_address_tokens(address: &str) -> Vec<Value> {
-    let balance: Value = get_address_confirmed_balance(address, None).unwrap();
+fn get_address_tokens(address: &str, explorer_url: Option<String>) -> Vec<Value> {
+    let balance: Value = get_address_confirmed_balance(address, explorer_url).unwrap();
     let tokens: &Vec<Value> = &balance["tokens"].as_array().unwrap().to_owned();
     return tokens.to_owned();
 }
@@ -354,22 +354,22 @@ mod tests {
 
     #[test]
     fn test_resolve_ergoname() {
-        assert_eq!(resolve_ergoname(NAME).unwrap(), "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL");
+        assert_eq!(resolve_ergoname(NAME, None).unwrap(), "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL");
     }
 
     #[test]
     fn test_null_resolve_ergoname() {
-        assert_eq!(resolve_ergoname(NULL_NAME), None);
+        assert_eq!(resolve_ergoname(NULL_NAME, None), None);
     }
 
     #[test]
     fn test_check_already_registered() {
-        assert_eq!(check_already_registered(NAME), true);
+        assert_eq!(check_already_registered(NAME, None), true);
     }
 
     #[test]
     fn test_null_check_already_registered() {
-        assert_eq!(check_already_registered(NULL_NAME), false);
+        assert_eq!(check_already_registered(NULL_NAME, None), false);
     }
 
     #[test]
@@ -394,52 +394,52 @@ mod tests {
 
     #[test]
     fn test_get_block_id_registered() {
-        assert_eq!(get_block_id_registered(NAME).unwrap(), "a5e0ab7f95142ceee7f3b6b5a5318153b345292e9aaae7c56825da115e196d08");
+        assert_eq!(get_block_id_registered(NAME, None).unwrap(), "a5e0ab7f95142ceee7f3b6b5a5318153b345292e9aaae7c56825da115e196d08");
     }
 
     #[test]
     fn test_null_get_block_id_registered() {
-        assert_eq!(get_block_id_registered(NULL_NAME), None);
+        assert_eq!(get_block_id_registered(NULL_NAME, None), None);
     }
 
     #[test]
     fn test_get_block_registered() {
-        assert_eq!(get_block_registered(NAME).unwrap(), 60761);
+        assert_eq!(get_block_registered(NAME, None).unwrap(), 60761);
     }
 
     #[test]
     fn test_null_get_block_registered() {
-        assert_eq!(get_block_registered(NULL_NAME), None);
+        assert_eq!(get_block_registered(NULL_NAME, None), None);
     }
 
     #[test]
     fn test_get_timestamp_registered() {
-        assert_eq!(get_timestamp_registered(NAME).unwrap(), 1656968987794);
+        assert_eq!(get_timestamp_registered(NAME, None).unwrap(), 1656968987794);
     }
 
     #[test]
     fn test_null_get_timestamp_registered() {
-        assert_eq!(get_timestamp_registered(NULL_NAME), None);
+        assert_eq!(get_timestamp_registered(NULL_NAME, None), None);
     }
 
     #[test]
     fn test_get_date_registered() {
-        assert_eq!(get_date_registerd(NAME).unwrap(), "2022-07-04");
+        assert_eq!(get_date_registerd(NAME, None).unwrap(), "2022-07-04");
     }
 
     #[test]
     fn test_null_get_date_registered() {
-        assert_eq!(get_date_registerd(NULL_NAME), None);
+        assert_eq!(get_date_registerd(NULL_NAME, None), None);
     }
 
     #[test]
     fn test_get_total_amount_owned() {
-        assert_eq!(get_total_amount_owned(ADDRESS).unwrap(), 1);
+        assert_eq!(get_total_amount_owned(ADDRESS, None).unwrap(), 1);
     }
 
     #[test]
     fn test_null_get_total_amount_owned() {
-        assert_eq!(get_total_amount_owned(NULL_ADDRESS), None);
+        assert_eq!(get_total_amount_owned(NULL_ADDRESS, None), None);
     }
 
     #[test]
@@ -451,12 +451,12 @@ mod tests {
         };
         let mut vec = Vec::<Token>::new();
         vec.push(legit_token);
-        assert_eq!(vec_compare(reverse_search(ADDRESS), Some(vec)), true);
+        assert_eq!(vec_compare(reverse_search(ADDRESS, None), Some(vec)), true);
     }
 
     #[test]
     fn test_null_reverse_search() {
-        assert_eq!(vec_compare(reverse_search(NULL_ADDRESS), None), true);
+        assert_eq!(vec_compare(reverse_search(NULL_ADDRESS, None), None), true);
     }
 
     fn vec_compare(va: Option<Vec<Token>>, vb: Option<Vec<Token>>) -> bool {
