@@ -43,7 +43,7 @@ pub fn check_name_price(name: &str) -> i32 {
     return 0;
 }
 
-pub fn resolve_ergoname(name: &str) -> String {
+pub fn resolve_ergoname(name: &str) -> Option<String> {
     let token_data: String = create_token_data(&name).unwrap();
     if token_data != "None" {
         let token_vector: Vec<Token> = create_token_vector(token_data);
@@ -52,74 +52,80 @@ pub fn resolve_ergoname(name: &str) -> String {
         let token_last_transaction: Value = get_last_transaction_for_token(token_transactions);
         let token_current_box_id: String = get_box_id_from_token_data(token_last_transaction);
         let address: String = get_box_address(&token_current_box_id);
-        return address;
+        return Some(address);
     }
-    return "None".to_owned();
+    return None
 }
 
 pub fn check_already_registered(name: &str) -> bool {
-    let address: String = resolve_ergoname(name);
-    if address != "None" {
-        return true;
-    } else {
+    let address: Option<String> = resolve_ergoname(name);
+    if address.is_none() {
         return false;
+    } else {
+        return true;
     }
 }
 
-pub fn reverse_search(address: &str) -> Vec<Token> {
+pub fn reverse_search(address: &str) -> Option<Vec<Token>> {
     let token_data: Vec<Value> = get_address_tokens(address);
-    let token_vector: Vec<Token> = convert_to_token_array(token_data);
-    let valid_names_vector: Vec<Token> = remove_invalid_tokens(token_vector);
-    let owned_vector: Vec<Token> = check_correct_ownership(valid_names_vector, address);
-    return owned_vector;
+    if token_data.len() != 0 {
+        let token_vector: Vec<Token> = convert_to_token_array(token_data);
+        let valid_names_vector: Vec<Token> = remove_invalid_tokens(token_vector);
+        let owned_vector: Vec<Token> = check_correct_ownership(valid_names_vector, address);
+        return Some(owned_vector);
+    }
+    return None;
 }
 
-pub fn get_total_amount_owned(address: &str) -> u32 {
-    let token_vector: Vec<Token> = reverse_search(address);
-    let total_amount: u32 = token_vector.len() as u32;
-    return total_amount;
+pub fn get_total_amount_owned(address: &str) -> Option<u32> {
+    let token_vector: Option<Vec<Token>> = reverse_search(address);
+    if token_vector.is_some() {
+        let total_amount: u32 = token_vector.unwrap().len() as u32;
+        return Some(total_amount);
+    }
+    return None;
 }
 
-pub fn get_block_id_registered(name: &str) -> String {
+pub fn get_block_id_registered(name: &str) -> Option<String> {
     let token_data: String = create_token_data(&name).unwrap();
     if token_data != "None" {
         let token_vector: Vec<Token> = create_token_vector(token_data);
         let token_id: String = get_asset_minted_at_address(token_vector);
         let first_transaction: Value = get_single_transaction_by_token_id(&token_id).unwrap();
         let block_id: String = get_block_id_from_transaction(first_transaction);
-        return block_id;
+        return Some(block_id);
     }
-    return "None".to_owned();
+    return None;
 }
 
-pub fn get_block_registered(name: &str) -> i32 {
-    let block_id: String = get_block_id_registered(name);
-    if block_id != "None" {
-        let height_str: String = remove_quotes(get_height_from_transaction(&block_id));
+pub fn get_block_registered(name: &str) -> Option<i32> {
+    let block_id: Option<String> = get_block_id_registered(name);
+    if block_id.is_some() {
+        let height_str: String = remove_quotes(get_height_from_transaction(&block_id.unwrap()));
         let height: i32 = height_str.parse::<i32>().unwrap();
-        return height;
+        return Some(height);
     }
-    return 0;
+    return None;
 }
 
-pub fn get_timestamp_registered(name: &str) -> u64 {
-    let block_id: String = get_block_id_registered(name);
-    if block_id != "None" {
-        let timestamp: String = get_timestamp_from_transaction(&block_id);
-        return timestamp.parse::<u64>().unwrap();
+pub fn get_timestamp_registered(name: &str) -> Option<u64> {
+    let block_id: Option<String> = get_block_id_registered(name);
+    if block_id.is_some() {
+        let timestamp: String = get_timestamp_from_transaction(&block_id.unwrap());
+        return Some(timestamp.parse::<u64>().unwrap());
     }
-    return 0;
+    return None;
 }
 
-pub fn get_date_registerd(name: &str) -> String {
-    let timestamp: u64 = get_timestamp_registered(name);
-    if timestamp != 0 {
-        let reformated_time: SystemTime = UNIX_EPOCH + Duration::from_millis(timestamp);
+pub fn get_date_registerd(name: &str) -> Option<String> {
+    let timestamp: Option<u64> = get_timestamp_registered(name);
+    if timestamp.is_some() {
+        let reformated_time: SystemTime = UNIX_EPOCH + Duration::from_millis(timestamp.unwrap());
         let datetime: DateTime<Utc> = DateTime::<Utc>::from(reformated_time);
         let timestamp_str: String = datetime.format("%Y-%m-%d").to_string();
-        return timestamp_str;
+        return Some(timestamp_str);
     }
-    return "None".to_owned();
+    return None;
 }
 
 fn remove_quotes(i_str: String) -> String {
@@ -306,12 +312,12 @@ mod tests {
 
     #[test]
     fn test_resolve_ergoname() {
-        assert_eq!(resolve_ergoname(NAME), "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL");
+        assert_eq!(resolve_ergoname(NAME).unwrap(), "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL");
     }
 
     #[test]
     fn test_null_resolve_ergoname() {
-        assert_eq!(resolve_ergoname(NULL_NAME), "None");
+        assert_eq!(resolve_ergoname(NULL_NAME), None);
     }
 
     #[test]
@@ -346,52 +352,52 @@ mod tests {
 
     #[test]
     fn test_get_block_id_registered() {
-        assert_eq!(get_block_id_registered(NAME), "a5e0ab7f95142ceee7f3b6b5a5318153b345292e9aaae7c56825da115e196d08");
+        assert_eq!(get_block_id_registered(NAME).unwrap(), "a5e0ab7f95142ceee7f3b6b5a5318153b345292e9aaae7c56825da115e196d08");
     }
 
     #[test]
     fn test_null_get_block_id_registered() {
-        assert_eq!(get_block_id_registered(NULL_NAME), "None");
+        assert_eq!(get_block_id_registered(NULL_NAME), None);
     }
 
     #[test]
     fn test_get_block_registered() {
-        assert_eq!(get_block_registered(NAME), 60761);
+        assert_eq!(get_block_registered(NAME).unwrap(), 60761);
     }
 
     #[test]
     fn test_null_get_block_registered() {
-        assert_eq!(get_block_registered(NULL_NAME), 0);
+        assert_eq!(get_block_registered(NULL_NAME), None);
     }
 
     #[test]
     fn test_get_timestamp_registered() {
-        assert_eq!(get_timestamp_registered(NAME), 1656968987794);
+        assert_eq!(get_timestamp_registered(NAME).unwrap(), 1656968987794);
     }
 
     #[test]
     fn test_null_get_timestamp_registered() {
-        assert_eq!(get_timestamp_registered(NULL_NAME), 0);
+        assert_eq!(get_timestamp_registered(NULL_NAME), None);
     }
 
     #[test]
     fn test_get_date_registered() {
-        assert_eq!(get_date_registerd(NAME), "2022-07-04");
+        assert_eq!(get_date_registerd(NAME).unwrap(), "2022-07-04");
     }
 
     #[test]
     fn test_null_get_date_registered() {
-        assert_eq!(get_date_registerd(NULL_NAME), "None");
+        assert_eq!(get_date_registerd(NULL_NAME), None);
     }
 
     #[test]
     fn test_get_total_amount_owned() {
-        assert_eq!(get_total_amount_owned(ADDRESS), 1);
+        assert_eq!(get_total_amount_owned(ADDRESS).unwrap(), 1);
     }
 
     #[test]
     fn test_null_get_total_amount_owned() {
-        assert_eq!(get_total_amount_owned(NULL_ADDRESS), 0);
+        assert_eq!(get_total_amount_owned(NULL_ADDRESS), None);
     }
 
     #[test]
@@ -403,20 +409,28 @@ mod tests {
         };
         let mut vec = Vec::<Token>::new();
         vec.push(legit_token);
-        assert_eq!(vec_compare(reverse_search(ADDRESS), vec), true);
+        assert_eq!(vec_compare(reverse_search(ADDRESS), Some(vec)), true);
     }
 
     #[test]
     fn test_null_reverse_search() {
-        assert_eq!(vec_compare(reverse_search(NULL_ADDRESS), Vec::<Token>::new()), true);
+        assert_eq!(vec_compare(reverse_search(NULL_ADDRESS), None), true);
     }
 
-    fn vec_compare(va: Vec<Token>, vb: Vec<Token>) -> bool {
-        if va.len() != vb.len() {
+    fn vec_compare(va: Option<Vec<Token>>, vb: Option<Vec<Token>>) -> bool {
+        if va.is_none() && va.is_some() {
             return false;
         }
-        for i in 0..va.len() {
-            if va.get(i).unwrap().name != vb.get(i).unwrap().name {
+        if vb.is_none() && vb.is_none() {
+            return true;
+        }
+        let vau: Vec<Token> = va.unwrap();
+        let vbu: Vec<Token> = vb.unwrap();
+        if vau.len() != vbu.len() {
+            return false;
+        }
+        for i in 0..vau.len() {
+            if vau.get(i).unwrap().name != vbu.get(i).unwrap().name {
                 return false;
             }
         }
