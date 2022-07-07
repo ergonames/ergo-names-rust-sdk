@@ -314,7 +314,8 @@ fn remove_invalid_tokens(token_vector: Vec<Token>) -> Vec<Token> {
 fn check_correct_ownership(token_vector: Vec<Token>, user_address: &str) -> Vec<Token> {
     let mut new_token_vector: Vec<Token> = Vec::new();
     for i in 0..token_vector.len() {
-        if token_vector.get(i).unwrap().box_id == user_address {
+        let token_address = get_box_address(&token_vector.get(i).unwrap().box_id);
+        if token_address == user_address {
             let tk = Token {
                 name: token_vector.get(i).unwrap().name.to_string(),
                 id: token_vector.get(i).unwrap().id.to_string(),
