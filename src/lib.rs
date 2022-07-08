@@ -265,8 +265,7 @@ fn get_box_address(box_id: &str) -> String {
 }
 
 fn get_last_transaction_for_token(data: Value) -> Value {
-    let length: usize = data.as_array().unwrap().len();
-    let last_borrowed: &Value = &data.get(length-1).unwrap();
+    let last_borrowed: &Value = &data.get(0).unwrap();
     let last: Value = last_borrowed.to_owned();
     return last;
 }
