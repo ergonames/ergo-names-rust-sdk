@@ -265,10 +265,17 @@ fn get_box_address(box_id: &str) -> String {
 }
 
 fn get_last_transaction_for_token(data: Value) -> Value {
-    let length = data.as_array().unwrap().len();
-    let last_borrowed: &Value = &data.get(length-1).unwrap();
-    let last: Value = last_borrowed.to_owned();
-    return last;
+    let mut lastest_transaction: Value = Value::Null;
+    let mut creation_height: u64 = 0;
+    for i in data.as_array().unwrap() {
+        let box_id = remove_quotes(i["boxId"].to_string());
+        let box_info = get_box_by_id(&box_id, None).unwrap();
+        if box_info["creationHeight"].as_u64().unwrap() > creation_height {
+            creation_height = box_info["creationHeight"].to_owned().as_u64().unwrap();
+            lastest_transaction = i.to_owned();
+        }
+    }
+    return lastest_transaction;
 }
 
 fn get_box_id_from_token_data(data: Value) -> String{
