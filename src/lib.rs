@@ -38,9 +38,13 @@ pub fn reformat_name(name: &str) -> String {
     return name.to_lowercase();
 }
 
-pub fn check_name_price(name: &str) -> i32 {
+pub fn check_name_price(name: &str) -> Option<i32> {
+    let valid: bool = check_name_valid(name);
+    if !valid {
+        return None;
+    }
     let _: String = reformat_name(name);
-    return 0;
+    return Some(0);
 }
 
 pub fn resolve_ergoname(name: &str, explorer_url: Option<String>) -> Option<String> {
@@ -357,6 +361,7 @@ mod tests {
 
     const NAME: &str = "~balb";
     const NULL_NAME: &str = "~zack";
+    const INVALID_NAME: &str =  "~balb+=]}/";
     const ADDRESS: &str = "3WwKzFjZGrtKAV7qSCoJsZK9iJhLLrUa3uwd4yw52bVtDVv6j5TL";
     const NULL_ADDRESS: &str = "3Wxf2LxF8HUSzfnT6bDGGUDNp1YMvWo5JWxjeSpszuV6w6UJGLSf";
 
@@ -392,12 +397,12 @@ mod tests {
 
     #[test]
     fn test_check_name_price() {
-        assert_eq!(check_name_price(NAME), 0);
+        assert_eq!(check_name_price(NAME).unwrap(), 0);
     }
 
     #[test]
     fn test_null_check_name_price() {
-        assert_eq!(check_name_price(NULL_NAME), 0);
+        assert_eq!(check_name_price(INVALID_NAME), None);
     }
 
     #[test]
