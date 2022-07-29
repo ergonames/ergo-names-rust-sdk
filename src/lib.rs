@@ -4,6 +4,7 @@ use chrono::prelude::*;
 use chrono::Utc;
 use std::time::{SystemTime, UNIX_EPOCH, Duration};
 
+/// Struct for tokens retrieved from API calls
 #[derive(Debug, Clone)]
 pub struct  Token {
     pub name: String,
@@ -11,9 +12,12 @@ pub struct  Token {
     pub box_id: String,
 }
 
+/// The default explorer API URL.
 pub const EXPLORER_API_URL: &str = "https://api-testnet.ergoplatform.com/";
+/// The ErgoNames mint address.
 pub const MINT_ADDRESS: &str = "3WycHxEz8ExeEWpUBwvu1FKrpY8YQCiH1S9PfnAvBX1K73BXBXZa";
 
+/// Checks if the name is a valid ErgoName according to the ErgoName specification.
 pub fn check_name_valid(name: &str) -> bool {
     for c in name.chars() {
         let char_code: u8 = c as u8;
@@ -34,10 +38,12 @@ pub fn check_name_valid(name: &str) -> bool {
     return true;
 }
 
+/// Reformats the name to be valid ErgoName according to the ErgoName specification.
 pub fn reformat_name(name: &str) -> String {
     return name.to_lowercase();
 }
 
+/// Returns the price of a given ErgoName in ergs.
 pub fn check_name_price(name: &str) -> Option<i32> {
     let valid: bool = check_name_valid(name);
     if !valid {
@@ -47,6 +53,7 @@ pub fn check_name_price(name: &str) -> Option<i32> {
     return Some(0);
 }
 
+/// Resolves the owner address of a given ErgoName.
 pub fn resolve_ergoname(name: &str, explorer_url: Option<String>) -> Option<String> {
     let token_data: String = create_token_data(&name, explorer_url.clone()).unwrap();
     if token_data != "None" {
@@ -61,6 +68,7 @@ pub fn resolve_ergoname(name: &str, explorer_url: Option<String>) -> Option<Stri
     return None
 }
 
+/// Checks if the ErgoName is already registered.
 pub fn check_already_registered(name: &str, explorer_url: Option<String>) -> bool {
     let address: Option<String> = resolve_ergoname(name, explorer_url);
     if address.is_none() {
@@ -70,6 +78,7 @@ pub fn check_already_registered(name: &str, explorer_url: Option<String>) -> boo
     }
 }
 
+/// Returns a list of all ErgoNames owned by an address.
 pub fn reverse_search(address: &str, explorer_url: Option<String>) -> Option<Vec<Token>> {
     let token_data: Vec<Value> = get_address_tokens(address, explorer_url);
     if token_data.len() != 0 {
@@ -81,6 +90,7 @@ pub fn reverse_search(address: &str, explorer_url: Option<String>) -> Option<Vec
     return None;
 }
 
+/// Returns a the total amount of ErgoNames owned by an address.
 pub fn get_total_amount_owned(address: &str, explorer_url: Option<String>) -> Option<u32> {
     let token_vector: Option<Vec<Token>> = reverse_search(address, explorer_url);
     if token_vector.is_some() {
@@ -90,6 +100,7 @@ pub fn get_total_amount_owned(address: &str, explorer_url: Option<String>) -> Op
     return None;
 }
 
+/// Returns the block id that an ErgoName was registered at.
 pub fn get_block_id_registered(name: &str, explorer_url: Option<String>) -> Option<String> {
     let token_data: String = create_token_data(&name, explorer_url).unwrap();
     if token_data != "None" {
@@ -102,6 +113,7 @@ pub fn get_block_id_registered(name: &str, explorer_url: Option<String>) -> Opti
     return None;
 }
 
+/// Returns the block number that an ErgoName was registered at.
 pub fn get_block_registered(name: &str, explorer_url: Option<String>) -> Option<i32> {
     let block_id: Option<String> = get_block_id_registered(name, explorer_url);
     if block_id.is_some() {
@@ -112,6 +124,7 @@ pub fn get_block_registered(name: &str, explorer_url: Option<String>) -> Option<
     return None;
 }
 
+/// Returns the timestamp (since UNIX epoch) in milliseconds that an ErgoName was registered at.
 pub fn get_timestamp_registered(name: &str, explorer_url: Option<String>) -> Option<u64> {
     let block_id: Option<String> = get_block_id_registered(name, explorer_url);
     if block_id.is_some() {
@@ -121,6 +134,7 @@ pub fn get_timestamp_registered(name: &str, explorer_url: Option<String>) -> Opt
     return None;
 }
 
+/// Returns the date that an ErgoName was registered at. (Format: YYYY-MM-DD)
 pub fn get_date_registerd(name: &str, explorer_url: Option<String>) -> Option<String> {
     let timestamp: Option<u64> = get_timestamp_registered(name, explorer_url);
     if timestamp.is_some() {
@@ -132,11 +146,13 @@ pub fn get_date_registerd(name: &str, explorer_url: Option<String>) -> Option<St
     return None;
 }
 
+/// Removes quoatation marks from a string.
 fn remove_quotes(i_str: String) -> String {
     let n_str: String = i_str.replace('"', "");
     return n_str;
 }
 
+/// Reqeusts all tokens on the Ergo network with a given name.
 fn get_token_data(token_name: &str, limit: u64, offset: u64, explorer_url: Option<String>) -> Result<Value> {
     if explorer_url.is_none() {
         let url: String = format!("{}api/v1/tokens/search?query={}&limit={}&offset={}", EXPLORER_API_URL, token_name, limit, offset);
@@ -151,6 +167,7 @@ fn get_token_data(token_name: &str, limit: u64, offset: u64, explorer_url: Optio
     }
 }
 
+/// Requests the infomation for a box by a given box id.
 fn get_box_by_id(box_id: &str, explorer_url: Option<String>) -> Result<Value> {
     if explorer_url.is_none() {
         let url: String = format!("{}api/v1/boxes/{}", EXPLORER_API_URL, box_id);
@@ -165,6 +182,7 @@ fn get_box_by_id(box_id: &str, explorer_url: Option<String>) -> Result<Value> {
     }
 }
 
+/// Requests the infomation for a block by a given block id.
 fn get_block_by_id(block_id: &str, explorer_url: Option<String>) -> Result<Value> {
     if explorer_url.is_none() {
         let url: String = format!("{}api/v1/blocks/{}", EXPLORER_API_URL, block_id);
@@ -179,6 +197,7 @@ fn get_block_by_id(block_id: &str, explorer_url: Option<String>) -> Result<Value
     }
 }
 
+/// Requests all the transactions for a token by a given token id.
 fn get_token_transaction_data(token_id: &str, explorer_url: Option<String>) -> Result<Value> {
     if explorer_url.is_none() {
         let url: String = format!("{}api/v1/assets/search/byTokenId?query={}", EXPLORER_API_URL, token_id);
@@ -193,6 +212,7 @@ fn get_token_transaction_data(token_id: &str, explorer_url: Option<String>) -> R
     }
 }
 
+/// Requests a singgular transaction for a token by a given token id.
 fn get_single_transaction_by_token_id(token_id: &str, explorer_url: Option<String>) -> Result<Value> {
     if explorer_url.is_none() {
         let url: String = format!("{}api/v1/assets/search/byTokenId?query={}&limit=1", EXPLORER_API_URL, token_id);
@@ -207,6 +227,7 @@ fn get_single_transaction_by_token_id(token_id: &str, explorer_url: Option<Strin
     }
 }
 
+/// Requests the confirmed balance of an address.
 fn get_address_confirmed_balance(address: &str, explorer_url: Option<String>) -> Result<Value> {
     if explorer_url.is_none() {
         let url: String = format!("{}api/v1/addresses/{}/balance/confirmed", EXPLORER_API_URL, address);
@@ -221,6 +242,7 @@ fn get_address_confirmed_balance(address: &str, explorer_url: Option<String>) ->
     }
 }
 
+/// Combines get_token_data calls into a singular String object.
 fn create_token_data(token_name: &str, explorer_url: Option<String>) -> Result<String> {
     let total: u64 = get_token_data(&token_name, 1, 0, explorer_url.clone()).unwrap()["total"].to_owned().as_u64().unwrap();
     let needed_calls: u64 = (total / 500) + 1;
@@ -237,6 +259,7 @@ fn create_token_data(token_name: &str, explorer_url: Option<String>) -> Result<S
     }
 }
 
+/// Creates a vector of Tokens from a String object.
 fn create_token_vector(data: String) -> Vec<Token> {
     let data_value: Value = serde_json::from_str(&data).unwrap();
     let mut token_vector: Vec<Token> = Vec::new();
@@ -252,6 +275,7 @@ fn create_token_vector(data: String) -> Vec<Token> {
     return token_vector
 }
 
+/// Returns the id of a token for a given mint address.
 fn get_asset_minted_at_address(token_vector: Vec<Token>) -> String{
     for i in token_vector {
         let address: String = get_box_address(&i.box_id);
@@ -262,12 +286,14 @@ fn get_asset_minted_at_address(token_vector: Vec<Token>) -> String{
     return "None".to_owned();
 }
 
+/// Returns the address that a box is bound to.
 fn get_box_address(box_id: &str) -> String {
     let box_data: Value = get_box_by_id(box_id, None).unwrap();
     let address: String = remove_quotes(box_data["address"].to_string());
     return address;
 }
 
+/// Requests the last transaction for a token by a given token id.
 fn get_last_transaction_for_token(data: Value) -> Value {
     let mut lastest_transaction: Value = Value::Null;
     let mut creation_height: u64 = 0;
@@ -282,17 +308,20 @@ fn get_last_transaction_for_token(data: Value) -> Value {
     return lastest_transaction;
 }
 
+/// Returns the box id for a token by a given token id.
 fn get_box_id_from_token_data(data: Value) -> String{
     let box_id: String = data["boxId"].to_string();
     return remove_quotes(box_id);
 }
 
+/// Returns the confirmed owned tokens for an address.
 fn get_address_tokens(address: &str, explorer_url: Option<String>) -> Vec<Value> {
     let balance: Value = get_address_confirmed_balance(address, explorer_url).unwrap();
     let tokens: &Vec<Value> = &balance["tokens"].as_array().unwrap().to_owned();
     return tokens.to_owned();
 }
 
+/// Converts information into a vector of Tokens.
 fn convert_to_token_array(data: Vec<Value>) -> Vec<Token> {
     let mut token_vector: Vec<Token> = Vec::new();
     for i in 0..data.len() {
@@ -307,6 +336,7 @@ fn convert_to_token_array(data: Vec<Value>) -> Vec<Token> {
     return token_vector;
 }
 
+/// Removes tokens with names that do not match ErgoName convention.
 fn remove_invalid_tokens(token_vector: Vec<Token>) -> Vec<Token> {
     let mut new_token_vector: Vec<Token> = Vec::new();
     for i in 0..token_vector.len() {
@@ -322,6 +352,7 @@ fn remove_invalid_tokens(token_vector: Vec<Token>) -> Vec<Token> {
     return new_token_vector;
 }
 
+/// Removes tokens that are not owned by the address.
 fn check_correct_ownership(token_vector: Vec<Token>, user_address: &str) -> Vec<Token> {
     let mut new_token_vector: Vec<Token> = Vec::new();
     for i in 0..token_vector.len() {
@@ -338,17 +369,20 @@ fn check_correct_ownership(token_vector: Vec<Token>, user_address: &str) -> Vec<
     return token_vector;
 }
 
+/// Returns the block id for a transaction by a given transaction id.
 fn get_block_id_from_transaction(transaction_data: Value) -> String {
     let block_id: String = transaction_data["items"][0]["headerId"].to_string();
     return remove_quotes(block_id);
 }
 
+/// Returns the height of the block for a transaction by a given transaction id.
 fn get_height_from_transaction(block_id: &str) -> String {
     let block_data: Value = get_block_by_id(block_id, None).unwrap();
     let height: String = block_data["block"]["header"]["height"].to_string();
     return remove_quotes(height);
 }
 
+/// Returns the timestamp in milliseconds (since UNIX epoch) of the block for a transaction by a given transaction id.
 fn get_timestamp_from_transaction(block_id: &str) -> String {
     let block_data: Value = get_block_by_id(block_id, None).unwrap();
     let timestamp: String = block_data["block"]["header"]["timestamp"].to_string();
